@@ -18,8 +18,6 @@ In this project, I implemented a movie recommendation system using item CF algor
 ## Deploy
 Deployed a Hadoop cluster on Docker, which has one master node and two slave nodes.
 
-Raw data is from this [website](https://www.limfinity.com/ir/).
-
 Data preprocessing
 
 * Changed the raw data into the following format: userId, movieId, rating.
