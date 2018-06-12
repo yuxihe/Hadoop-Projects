@@ -40,7 +40,7 @@ There are two MapReduce job here, both of them has two mappers and one reducer.
 
 * PRMapper: used PR.txt to generate PageRank matrix cell
 
-* MultiplicationReducer: calculated results of matrix cell * PageRank cell
+* MultiplicationReducer: calculated multiplication result of matrix cell * PageRank cell
 
 * PassMapper: read output generated from MultiplicationReducer
 
