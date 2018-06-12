@@ -1,20 +1,19 @@
 # PageRank project
 
 ## Overview
-In this project, I implemented a 
-pagerank search tools based on Pagerank algorithm using Hadoop MapReduce and Java language.
+In this project, I implemented PageRank algorithm and deployed using Hadoop MapReduce in Java.
 
 ## Main Steps
 
-* Build a pagerank Libraray from wiki data sets.
+* Preprocessed the source data to get transition.txt and PR.txt files.
 
-* According to the transmition matrix build a relationship model between webpages.
+* Built transition matrix from file transition.txt to represent relationship model between webpages.
 
-* According to the pagerank matrix calculate the weight between webpages.
+* Built PageRank matrix from PR.txt to calculate the weight between webpages.
 
-* Using teleporting to solve two edge case problems:Spider traps and Dead ends. 
+* Using Teleporting to handle edge cases like spider traps and dead ends.
 
-* Using Python httpserver to show the result.
+* Using Python http server to show the result.
 
 ## Web Interface
 
@@ -24,43 +23,39 @@ Demo looks like
 ![](demo.gif)
 
 ## Deploy
-we deploy a hadoop cluster on Docker, this cluster has one Masternode and two slavenodes. The whole project is based on the docker.
+Deployed a Hadoop cluster on Docker, which has one master node and two slave nodes.
 
 Raw data is from this [website](https://www.limfinity.com/ir/).
 
 Data preprocessing
 
-I preprocessed the original dataset in two steps:
+* Mapped a unique tag to each website.
 
-* Give every website a tag, mapping the tag to every website.
-
-* Change the data in each pagelink file into the following format: frompage-id topage-id.
+* Changed the raw data into the following format: fromPageId toPageId.
 
 
-There are two Mapreduce job here, both of them has two mappers.
+There are two MapReduce job here, both of them has two mappers and one reducer.
 
-* mr1_mapper1: use relation.txt to generate transition matrix cell
+* TransitionMapper: used transition.txt to generate transition matrix cell
 
-* mr1_mapper2: use PageRank.txt to generate pagerank matrix cell
+* PRMapper: used PR.txt to generate PageRank matrix cell
 
-* mr1_reducer: calculate results of matrix cell * pagerank cell
+* MultiplicationReducer: calculated results of matrix cell * PageRank cell
 
-* mr2_mapper1: read file generated from last mapreduce
+* PassMapper: read output generated from MultiplicationReducer
 
-* mr2_mapper2: teleporting:read pageRank_i.txt, which will add beta*e to result sum 
+* BetaMapper: implemented Teleporting to enhance the model
 
-* mr2_reducer: sum up cell for each page
+* SumReducer: summed up results from mappers and generate PageRank results
 
 ```
 $ hadoop com.sun.tools.javac.Main *.java
 $ jar cf ngram.jar *.class
-$ hadoop jar pr.jar Driver /transition /pagerank /output 5 0.8
+$ hadoop jar pr.jar Driver /transition /pagerank /output 5 0.2
 ```
 
 * args0: dir of transition.txt
-* args1: dir of PageRank.txt
+* args1: dir of PR.txt
 * args2: dir of unitMultiplication result
 * args3: times of convergence
 * args4: value of beta
-
-
