@@ -1,26 +1,19 @@
 # PageRank project
 
 ## Overview
-In this project, I implemented PageRank algorithm and deployed using Hadoop MapReduce in Java.
+In this project, I implemented a movie recommendation system using item CF algorithm on Hadoop MapReduce based on users' history data.
 
 ## Main Steps
 
-* Preprocessed the source data to get transition.txt and PR.txt files.
+* Preprocessed the source data to get userRating.txt.
 
-* Built transition matrix from file transition.txt to represent relationship model between webpages.
+* Built co-occurrence matrix.
 
-* Built PageRank matrix from PR.txt to calculate the weight between webpages.
+* Built rating matrix.
 
-* Using Teleporting to handle edge cases like spider traps and dead ends.
+* Implemented matrix computation.
 
-* Using Python http server to show the result.
-
-## Web Interface
-
-Demo looks like
-
-
-![](demo.gif)
+* Optimized the system to overcome lack of rating history data.
 
 ## Deploy
 Deployed a Hadoop cluster on Docker, which has one master node and two slave nodes.
@@ -29,33 +22,49 @@ Raw data is from this [website](https://www.limfinity.com/ir/).
 
 Data preprocessing
 
-* Mapped a unique tag to each website.
-
-* Changed the raw data into the following format: fromPageId toPageId.
+* Changed the raw data into the following format: userId, movieId, rating.
 
 
-There are two MapReduce job here, both of them has two mappers and one reducer.
+There are total six MapReduce job:
 
-* TransitionMapper: used transition.txt to generate transition matrix cell
+* MatrixGeneratorMapper: used userRating.txt to build relationship between two movies: <movieA, movieB>
 
-* PRMapper: used PR.txt to generate PageRank matrix cell
+* MatrixGeneratorReducer: summed up user rating lists
 
-* MultiplicationReducer: calculated multiplication result of matrix cell * PageRank cell
+* NormalizeMapper: read output generated from MatrixGeneratorReducer
 
-* PassMapper: read output generated from MultiplicationReducer
+* NormalizeReducer: performed normalization to get co-occurrence matrix cell
 
-* BetaMapper: implemented Teleporting to enhance the model
+* AverageRatingMapper: used userRating.txt to calculate each user rating list: userId : movieId = rating
+
+* AverageRatingReducer: calculated average rating for each userId
+
+* ReadMapper: read output generated from AverageRatingReducer
+
+* RatingMapper: used userRating.txt to calculate each user rating list: userId : movieId = rating
+
+* preProcessRatingReducer: used average rating to fill in non-rated movie for each userId to get rating matrix
+
+* CooccurrenceMapper: read in output from NormalizeReducer
+
+* RatingMapper: read in output from preProcessRatingReducer
+
+* MultiplicationReducer: performed matrix multiplication of co-occurrence matrix and rating matrix.
+
+* SumMapper: read in output from MultiplicationReducer
 
 * SumReducer: summed up results from mappers and generate PageRank results
 
 ```
 $ hadoop com.sun.tools.javac.Main *.java
-$ jar cf ngram.jar *.class
-$ hadoop jar pr.jar Driver /transition /pagerank /output 5 0.2
+$ jar cf recommender.jar *.class
+$ hadoop jar recommender.jar Driver /input /dataDividedByUser /coOccurrenceMatrix /Normalize /Multiplication /Sum
 ```
 
-* args0: dir of transition.txt
-* args1: dir of PR.txt
-* args2: dir of unitMultiplication result
-* args3: times of convergence
-* args4: value of beta
+
+* args0: original dataset
+* args1: output directory for DividerByUser job
+* args2: output directory for coOccurrenceMatrixBuilder job
+* args3: output directory for Normalize job
+* args4: output directory for Multiplication job
+* args5: output directory for Sum job
